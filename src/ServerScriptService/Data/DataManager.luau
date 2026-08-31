@@ -139,8 +139,8 @@ function DataManager.GastarOro(player : Player, cantidad : number)
         profile.Data.Economia.Oro -= cantidad --Se resta la cantidad de oro del jugador
         print(`[DataManager] Se ha restado ${cantidad} oro a {player.Name} `)
         local datosEconomia = { --Se preparan los datos de la economía para enviar al cliente
-            Oro = profile.Data.leaderstats.Oro,
-            Gemas = profile.Data.leaderstats.Gemas
+            Oro = profile.Data.Economia.Oro,
+            Gemas = profile.Data.Economia.Gemas
         }
         EconomyNet.SyncEconomia:Server():Fire(player, datosEconomia) --Llama al evento de economía para enviar los datos al cliente
         return true --Compra exitosa
@@ -154,12 +154,12 @@ function DataManager.GastarGemas(player : Player, cantidad : number)
     local profile = Profiles[player] --Busca al jugador en la tabla de perfiles
     if not profile then return false end --Si no hay un perfil para el jugador, no se puede gastar
 
-    if profile.Data.leaderstats.Gemas >= cantidad then
-        profile.Data.leaderstats.Gemas -= cantidad
+    if profile.Data.Economia.Gemas >= cantidad then
+        profile.Data.Economia.Gemas -= cantidad
         print(`[DataManager] Se ha restado ${cantidad} oro a {player.Name} `)
         local datosEconomia = {
-            Oro = profile.Data.leaderstats.Oro,
-            Gemas = profile.Data.leaderstats.Gemas
+            Oro = profile.Data.Economia.Oro,
+            Gemas = profile.Data.Economia.Gemas
         }
         EconomyNet.SyncEconomia:Server():Fire(player, datosEconomia)
         return true
@@ -174,10 +174,10 @@ function DataManager.AgregarOro(player : Player, cantidad : number)
     local profile = Profiles[player]
     if not profile then return end
 
-    profile.Data.leaderstats.Oro += cantidad
+    profile.Data.Economia.Oro += cantidad
     local datosEconomia = {
-        Oro = profile.Data.leaderstats.Oro,
-        Gemas = profile.Data.leaderstats.Gemas
+        Oro = profile.Data.Economia.Oro,
+        Gemas = profile.Data.Economia.Gemas
     }
     EconomyNet.SyncEconomia:Server():Fire(player, datosEconomia)
 end
@@ -186,10 +186,10 @@ function DataManager.AgregarGemas(player : Player, cantidad : number)
     local profile = Profiles[player]
     if not profile then return end
 
-    profile.Data.leaderstats.Gemas += cantidad
+    profile.Data.Economia.Gemas += cantidad
     local datosEconomia = {
-        Oro = profile.Data.leaderstats.Oro,
-        Gemas = profile.Data.leaderstats.Gemas
+        Oro = profile.Data.Economia.Oro,
+        Gemas = profile.Data.Economia.Gemas
     }
     EconomyNet.SyncEconomia:Server():Fire(player, datosEconomia)
 end
