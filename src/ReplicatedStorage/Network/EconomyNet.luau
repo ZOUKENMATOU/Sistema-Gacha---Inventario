@@ -1,11 +1,15 @@
 local RS = game:GetService("ReplicatedStorage")
 
 local Red = require(RS.Packages.Red)
+local Guard = require(RS.Packages.Guard)
 
-local function validarDatos(jugador: unknown, cantidad: unknown)
-    assert(type(jugador) == "string" and type(cantidad) == "number", "[EconomyNet] Los datos deben ser un string y un número")
-    return jugador :: string, cantidad :: number
+
+local function validarDatos(player: unknown, cantidad: unknown)
+    local jugadorValido = Guard.String(player)
+    local cantidadValida = Guard.Number(cantidad)
+    return jugadorValido, cantidadValida
 end
+
 
 local EconomySync = {
     SyncEconomia = Red.Event("SyncEconomia", validarDatos)

@@ -6,6 +6,7 @@ realm = "shared"
 
 [dependencies]
 Red = "red-blox/red@2.3.2"
+Guard = "red-blox/guard@^1.0.0"
 
 [server-dependencies]
 profilestore = "lm-loleris/profilestore@1.0.3"

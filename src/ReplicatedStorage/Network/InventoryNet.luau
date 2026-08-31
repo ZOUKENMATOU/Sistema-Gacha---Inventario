@@ -1,19 +1,18 @@
 local RS = game:GetService("ReplicatedStorage")
 
 local Red = require(RS.Packages.Red)
+local Guard = require(RS.Packages.Guard)
 
-local function validarCache(datos: unknown)
-    assert(type(datos) == "table", "[InventoryNet] El inventario debe ser una tabla")
-    return datos :: {}
-end
-
-local function validarStrings(texto1 : unknown, texto2 : unknown)
-    assert(type(texto1) == "string" and type(texto2) == "string", "[InventoryNet] Los datos deben ser strings")
-    return texto1 :: string, texto2 :: string
+local function validarInventario(datosDesconocidos: unknown)
+    assert(type(datosDesconocidos) == "table", "[InventoryNet] El inventario debe ser una tabla")
+    local datos: any = datosDesconocidos
+    return {
+        Armas = Guard.Check(datos.Armas), -- Asegúra de que Armas es una tabla
+        Auras = Guard.Check(datos.Auras) --Asegúra de que Auras es una tabla
+    }
 end
 
 local InventoryNet = {
-    SyncInventario = Red.Event("SyncInventario", validarCache),
-    PedirEquipar = Red.Event("PedirEquipar", validarStrings),
+    SyncInventario = Red.Event("SyncInventario", validarInventario), -- Evento para sincronizar el inventario
 }
 return InventoryNet
