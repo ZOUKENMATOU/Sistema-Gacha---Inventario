@@ -1,0 +1,102 @@
+local RS = game:GetService("ReplicatedStorage")
+
+local RarezasConfig = require(RS.Config.RarezasConfig) --Importacion de la configuración de rarezas
+type NombreRareza = RarezasConfig.NombresRareza
+
+export type TipoData = "Armas" | "Auras"
+
+export type ProbabilidadData = {
+    Rareza: NombreRareza,
+    Peso: number
+}
+
+export type CaseData = {
+    ID: string,
+    NombreVisual: string,
+    Precio: number,
+    Tipo: TipoData,
+    Probabilidades: {ProbabilidadData}, --Array de probabilidades
+    Contenido: {[NombreRareza]: {string}} --Diccionario de Arrays
+}
+
+--[[
+ID = "",
+NombreVisual = "",
+Precio = ,
+Tipo = "",
+
+Probabilidades = {
+    {Rareza = "Common", Peso = },
+    {Rareza = "Uncommon", Peso = },
+    {Rareza = "Rare", Peso = },
+    {Rareza = "Epic", Peso = },
+    {Rareza = "Legendary", Peso = },
+    {Rareza = "Mythic", Peso = }, 
+    {Rareza = "Divine", Peso = },
+},
+Contenido = {
+    Common = {
+    },
+    Uncommon = {
+    },
+    Rare = {
+    },
+    Epic = {
+    },
+    Legendary = {
+    },
+    Mytic = {
+    },
+    Divine = {
+    },
+}
+]]
+
+local CajaBasica : CaseData = {
+    ID = "caja_basica",
+    NombreVisual = "Caja Básica",
+    Precio = 100,
+    Tipo = "Armas",
+
+    Probabilidades = { --Tipo y probabilidad de cada rareza
+        {Rareza = "Common", Peso = 45000}, --45%
+        {Rareza = "Uncommon", Peso = 30000},--30%
+        -- {Rareza = "Rare", Peso = 18000}, --18%
+        -- {Rareza = "Epic", Peso = 5000}, --5%
+        -- {Rareza = "Legendary", Peso = 1500}, --1.5%
+        -- {Rareza = "Mythic", Peso = 450}, --0.45%
+        -- {Rareza = "Divine", Peso = 50}, --0.05%
+    },
+
+    Contenido = { --Contenido de la caja (items que pueden salir en base a su rareza)
+        Common = {
+            "espada_hierro",
+            "espada_gris",
+            "espada_espina",
+            "espada_morada",
+        },
+        --Poco comunes
+        Uncommon = {
+            "espada_minecraft",
+            "espada_brillante",
+            "espada_oscura",
+            "espada_negra",
+        },
+        -- Rare = {
+
+        -- },
+        -- Epic = {
+
+        -- },
+        -- Legendary = {
+
+        -- },
+        -- Mythic = {
+
+        -- },
+        -- Divine = {
+
+        -- },
+    }
+}
+return CajaBasica
