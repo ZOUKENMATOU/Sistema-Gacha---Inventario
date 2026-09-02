@@ -14,7 +14,7 @@ export type ProbabilidadData = { --Datos de probabilidad para cada ítem en la c
 
 export type CaseData = { --Datos de la caja
     ID: string,
-    NombreVisual: string,
+    NombreVisible: string,
     Precio: number,
     Tipo: TipoData,
     Probabilidades: { ProbabilidadData },

@@ -13,7 +13,7 @@ export type ProbabilidadData = {
 
 export type CaseData = {
     ID: string,
-    NombreVisual: string,
+    NombreVisible: string,
     Precio: number,
     Moneda: TipoMoneda,
     ProductId: number?, --En caso de que la moneda sea Robux, se debe especificar el ProductId del producto en la tienda de Roblox
@@ -58,7 +58,7 @@ Contenido = {
 
 local CajaBasica : CaseData = {
     ID = "caja_basica",
-    NombreVisual = "Caja Básica",
+    NombreVisible = "Caja Básica",
     Precio = 100,
     Moneda = "Oro",
     Tipo = "Armas",

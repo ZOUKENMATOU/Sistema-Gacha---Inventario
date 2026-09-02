@@ -5,7 +5,7 @@ local RarezasConfig = require(RS.Config.RarezasConfig)
 --TIPOS DE DATO
 export type ItemData = {
     Id: string,
-    Nombre: string,
+    NombreVisible: string,
     Imagen: string,
     Rareza: RarezasConfig.NombresRareza,
 }

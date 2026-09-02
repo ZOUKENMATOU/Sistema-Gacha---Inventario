@@ -7,7 +7,7 @@ export type CaseData = CajaBasica
 
 local CajaMagica : CaseData = {
     ID = "caja_magica",
-    NombreVisual = "Caja Mágica",
+    NombreVisible = "Caja Mágica",
     Precio = 1000,
     Moneda = "Gemas",
     Tipo = "Auras",

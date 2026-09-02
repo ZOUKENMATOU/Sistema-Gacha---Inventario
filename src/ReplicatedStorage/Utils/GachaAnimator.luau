@@ -1,7 +1,6 @@
 local GachaAnimator = {}
 
 --SERVICIOS
-local RS = game:GetService("ReplicatedStorage")
 local TS = game:GetService("TweenService")
 local Debris = game:GetService("Debris")
 local RunService = game:GetService("RunService")

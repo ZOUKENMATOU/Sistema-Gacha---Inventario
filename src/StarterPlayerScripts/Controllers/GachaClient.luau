@@ -21,8 +21,8 @@ local cantidadFramesFalsos = 70 --Cantidad maxima de frames (recompensas falsas)
 local cantidadRellenoFrame = 5 --Frames de relleno creados DESPUES del frame ganador
 
 --GUI REFERENCIAS
-local jugador = Players.LocalPlayer
 local RollTemplate
+local jugador = Players.LocalPlayer
 
     --GachaVisuals
     local GachaVisuals
@@ -66,7 +66,7 @@ function GachaClient:SolicitarAbrirCaja(nombreCaja : string) : {} | nil
         return tablaRareza[numeroRandom] --Devuelve un item falso ganador
     end
 
-    for i = 1, cantidadFramesFalsos do --Crea los frames falsos ANTES de que se agregue el frame ganador
+    for _ = 1, cantidadFramesFalsos do --Crea los frames falsos ANTES de que se agregue el frame ganador
         local itemIdFalso = ObtenerItemsFalsos()
         table.insert(itemsRoll, itemIdFalso) --Se agrega a la tabla de items falsos el item obtenido
     end
@@ -74,7 +74,7 @@ function GachaClient:SolicitarAbrirCaja(nombreCaja : string) : {} | nil
     --ITEM GANADOR REAL
     table.insert(itemsRoll, resultado) --Item real siguiente en la lista
 
-    for i = 1, cantidadRellenoFrame do --Crea los frames falsos DESPUES de que se agregue el frame ganador
+    for _ = 1, cantidadRellenoFrame do --Crea los frames falsos DESPUES de que se agregue el frame ganador
         local itemIdFalso = ObtenerItemsFalsos()
         table.insert(itemsRoll, itemIdFalso) --Se agrega a la tabla de items falsos el item obtenido
     end
@@ -121,6 +121,7 @@ function GachaClient.GenerarRoll(nombreCaja : string) --Genera el roll de la rul
 
     PoblarRuleta(tablaItems) --Puebla la ruleta con los items obtenidos
     GachaAnimator.Animar(FrameContenedor, FrameItems, cantidadFramesFalsos)
+    --Modulo render 3D
 end
 
 function GachaClient.Init()
