@@ -195,55 +195,36 @@ function DataManager.AgregarGemas(player : Player, cantidad : number)
 end
 
 -- AÑADIR ITEMS --
-function DataManager.AgregarArmas(player : Player, armaId : string, rarezaGanadora : NombreRareza)
+function DataManager.AgregarItemPorTipo(player : Player, tipo : string, itemId : string, rarezaGanadora : NombreRareza) : boolean
     local profile = Profiles[player]
-    if not profile then return end
+    if not profile then return false end
 
-    if table.find(profile.Data.Armas, armaId) then
-        local oroExtra = COMPENSACION_RAREZAS[rarezaGanadora].Oro or 0 
-        local gemasExtra = COMPENSACION_RAREZAS[rarezaGanadora].Gemas or 0
+    local inventarioCategoria = profile.Data[tipo]
+    if not inventarioCategoria then
+        warn(`[DataManager] La categoría {tipo} no existe en el perfil de {player.Name}`)
+        return false
+    end
+
+    --MANEJO DE ITEMS DUPLICADOS
+    if table.find(inventarioCategoria, itemId) then
+        local recompensas = COMPENSACION_RAREZAS[rarezaGanadora]
+        local oroExtra = recompensas.Oro or 0
+        local gemasExtra = recompensas.Gemas or 0
 
         DataManager.AgregarOro(player, oroExtra)
         DataManager.AgregarGemas(player, gemasExtra)
-        warn(`[DataManager] El jugador {player.Name} ha ganado {oroExtra} Oro y {gemasExtra} Gemas extras por obtener un item duplicado `)
-        return
-    else
-        table.insert(profile.Data.Armas, armaId)
-        print(`[DataManager] Se agrego el item {armaId} a el inventario de {player.Name}`)
-
-        -- ACTUALIZAR GUI DE INVENTARIO --
-        local datosActualizados = {
-            Armas = profile.Data.Armas,
-            Auras = profile.Data.Auras
-        }
-        InventoryNet.SyncInventario:Server():Fire(player, datosActualizados)
-        return
+        print(`[DataManager] Duplicado ({tipo}): +{oroExtra} Oro, +{gemasExtra} Gemas`)
+        return false
     end
-end
 
-function DataManager.AgregarAuras(player : Player, auraId : string, rarezaGanadora : NombreRareza)
-    local profile = Profiles[player]
-    if not profile then return end
+    ---AGREGAR ITEM AL INVENTARIO
+    table.insert(inventarioCategoria, itemId)
+    print(`[DataManager] Se agregó {itemId} a la categoría {tipo} de {player.Name}`)
 
-    if table.find(profile.Data.Auras, auraId) then
-        local oroExtra = COMPENSACION_RAREZAS[rarezaGanadora].Oro or 0 
-        local gemasExtra = COMPENSACION_RAREZAS[rarezaGanadora].Gemas or 0
-
-        DataManager.AgregarOro(player, oroExtra)
-        DataManager.AgregarGemas(player, gemasExtra)
-        warn(`[DataManager] El jugador {player.Name} ha ganado {oroExtra} Oro y {gemasExtra} Gemas extras por obtener un item duplicado`)
-        return
-    else
-        table.insert(profile.Data.Auras, auraId)
-        print(`[DataManager] Se agrego la aura {auraId} a el inventario de {player.Name}`)
-
-        -- ACTUALIZAR GUI DE INVENTARIO --
-        local datosActualizados = {
-            Armas = profile.Data.Armas,
-            Auras = profile.Data.Auras
-        }
-        InventoryNet.SyncInventario:Server():Fire(player, datosActualizados)
-        return
-    end
+    InventoryNet.SyncInventario:Server():Fire(player, {
+        Armas = profile.Data.Armas,
+        Auras = profile.Data.Auras,
+    })
+    return true
 end
 return DataManager

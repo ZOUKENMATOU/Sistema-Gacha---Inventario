@@ -18,7 +18,7 @@ export type InfoData = {
 }
 ]]
 
-local ArmasIndex : {[string]: InfoData} = {
+local Armas : {[string]: InfoData} = {
         --Comunes
     ["espada_hierro"] = {
         ID = "espada_hierro",
@@ -81,4 +81,4 @@ local ArmasIndex : {[string]: InfoData} = {
 
     --Divino
 }
-return ArmasIndex
+return Armas
