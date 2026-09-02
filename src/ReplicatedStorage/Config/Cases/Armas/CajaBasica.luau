@@ -4,6 +4,7 @@ local RarezasConfig = require(RS.Config.RarezasConfig) --Importacion de la confi
 type NombreRareza = RarezasConfig.NombresRareza
 
 export type TipoData = "Armas" | "Auras"
+export type TipoMoneda = "Oro" | "Gemas" | "Robux"
 
 export type ProbabilidadData = {
     Rareza: NombreRareza,
@@ -14,6 +15,8 @@ export type CaseData = {
     ID: string,
     NombreVisual: string,
     Precio: number,
+    Moneda: TipoMoneda,
+    ProductId: number?, --En caso de que la moneda sea Robux, se debe especificar el ProductId del producto en la tienda de Roblox
     Tipo: TipoData,
     Probabilidades: {ProbabilidadData}, --Array de probabilidades
     Contenido: {[NombreRareza]: {string}} --Diccionario de Arrays
@@ -23,6 +26,7 @@ export type CaseData = {
 ID = "",
 NombreVisual = "",
 Precio = ,
+Moneda = "",
 Tipo = "",
 
 Probabilidades = {
@@ -56,6 +60,7 @@ local CajaBasica : CaseData = {
     ID = "caja_basica",
     NombreVisual = "Caja Básica",
     Precio = 100,
+    Moneda = "Oro",
     Tipo = "Armas",
 
     Probabilidades = { --Tipo y probabilidad de cada rareza

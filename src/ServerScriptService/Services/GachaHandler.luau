@@ -12,6 +12,11 @@ local GachaNet = require(RS.Network.GachaNet)
 
 local DataManager = require(SSS.Data.DataManager)
 
+
+local CobradoresMoneda : {[string]: (Player, number) -> boolean} = {
+    Oro = DataManager.GastarOro,
+    Gemas = DataManager.GastarGemas,
+}
 function GachaHandler.Init()
     GachaNet.AbrirCaja:SetCallback(function(player: Player, nombreCaja: string)
         local CajaRequerida = CasesIndex[nombreCaja]
@@ -21,11 +26,15 @@ function GachaHandler.Init()
             return
         end
 
-        if not DataManager.GastarOro(player, CajaRequerida.Precio) then
-            warn("[GachaHandler] El jugador " .. player.Name .. " no tiene suficiente oro para abrir la caja: " .. nombreCaja)
-            return
+        if CajaRequerida.Moneda == "Robux" then
+            error("[GachaService] Las cajas de Robux deben comprarse mediante la pasarela de pago.")
         end
 
+        local cobrar = CobradoresMoneda[CajaRequerida.Moneda] --Función para cobrar la moneda correspondiente al jugador
+        if not cobrar or not cobrar(player, CajaRequerida.Precio) then --Cobrar la moneda correspondiente al jugador si no se puede cobrar, se devuelve un error
+            error(`[GachaService] Fondos insuficientes de {CajaRequerida.Moneda}.`)
+        end
+        
         --Seleccionar una rareza ganadora basada en las probabilidades definidas en la caja
         local pesos = CajaRequerida.Probabilidades --Tabla de probabilidades de los items en la caja
         local pesoTotal = SPP.ObtenerTotal(pesos) --Suma de todos los pesos de los items en la caja

@@ -106,7 +106,7 @@ end
 function GachaClient.GenerarRoll(nombreCaja : string) --Genera el roll de la ruleta
     local tablaItems = GachaClient:SolicitarAbrirCaja(nombreCaja) :: {} --Tabla con iDs de items--
     if not tablaItems then
-        warn("[GachaClient] No se pudieron obtener los items de la caja: " .. nombreCaja)
+        warn("[GachaClient] Compra cancelada o fondos insuficientes.")
         return 
     end
     
@@ -132,7 +132,7 @@ function GachaClient.Init()
     FrameContenedor = FrameItems:WaitForChild("FrameContenedor") 
 
     --PRUEBA
-    local caja = game.Workspace.caja_basica :: BasePart --Caja de prueba
+    local caja = game.Workspace.caja_magica :: BasePart --Caja de prueba
     local proximityPromt = caja:FindFirstChildOfClass("ProximityPrompt")
 
     proximityPromt.Triggered:Connect(function()
