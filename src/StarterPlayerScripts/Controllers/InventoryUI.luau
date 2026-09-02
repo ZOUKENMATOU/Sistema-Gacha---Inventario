@@ -3,12 +3,17 @@
 local RS = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local SG = game:GetService("StarterGui")
+local Debris = game:GetService("Debris")
+local SoundService = game:GetService("SoundService")
 
 --DEPENDENCIAS
 local InventoryNet = require(RS.Network.InventoryNet)
 local RarezasConfig = require(RS.Config.RarezasConfig)
 local ItemsIndex = require(RS.Config.Catalogo.ItemsIndex)
 --Modulo render 3D
+
+--
+local Sonidos = SoundService:WaitForChild("Sonidos")
 
 local InventoryUI = {}
 
@@ -48,6 +53,12 @@ function InventoryUI.Init()
         for _, boton in pestaniasFolder:GetChildren() do --Recorre todos los hijos dentro de la carpeta
             if boton:IsA("TextButton") or boton:IsA("ImageButton") then --Si el hijo es un botón de texto o imagen
                 boton.MouseButton1Click:Connect(function() --Conecta el evento de clic del botón
+                    local Flip = Sonidos:WaitForChild("Flip")
+                    local clonFlip = Flip:Clone()
+                    clonFlip.Parent = SoundService
+                    clonFlip:Play()
+                    Debris:AddItem(clonFlip, 1)
+                    
                     InventoryUI:CambiarPestania(boton.Name) --Activa la función CambiarPestania con el nombre del botón clickeado
                 end)
             end
@@ -98,6 +109,12 @@ function InventoryUI:RenderizarLista()
         templateClone.ImageButton.Image = itemData.Imagen
 
         templateClone.ImageButton.MouseButton1Click:Connect(function() --Conecta el evento de clic del botón de imagen
+            local Click = Sonidos:WaitForChild("Click")
+            local clonClick = Click:Clone()
+            clonClick.Parent = SoundService
+            clonClick:Play()
+            Debris:AddItem(clonClick, 1)
+            
             InventoryUI:SeleccionarItem(itemId)
         end)
 
