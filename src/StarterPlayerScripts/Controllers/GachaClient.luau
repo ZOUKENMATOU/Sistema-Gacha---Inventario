@@ -12,12 +12,12 @@ local RarezaConfig = require(RS.Config.RarezasConfig)
 
 local SPP = require(RS.Utils.SelectorPorPeso)
 local RNG = require(RS.Utils.RNG)
+local GachaAnimator = require(RS.Utils.GachaAnimator)
 
 local GachaNet = require(RS.Network.GachaNet)
 
 --CONFIGURACIONES
 local cantidadFramesFalsos = 70 --Cantidad maxima de frames (recompensas falsas) que se van a clonar en el contenedor general de frames ANTES de que se agregue el frame ganador
---local cantidadTotalFrames = 71 --Numero total de frames creados sumando el item ganador en la ultima posicion (variable que recibe [GenerarRoll] )
 local cantidadRellenoFrame = 5 --Frames de relleno creados DESPUES del frame ganador
 
 --GUI REFERENCIAS
@@ -43,6 +43,8 @@ function GachaClient:SolicitarAbrirCaja(nombreCaja : string) : {} | nil
         return
     end
 
+    print(`[GachaClient] La caja {nombreCaja} se ha abierto con éxito y el item ganador es {resultado}`)
+    
     --VISUALES DEL GACHA
     local pesos = CasesIndex[nombreCaja].Probabilidades --Obtiene las probabilidades de la caja para crear items fake
     local pesoTotal = SPP.ObtenerTotal(pesos) --Suma de todos los pesos de los items en la caja
@@ -118,7 +120,7 @@ function GachaClient.GenerarRoll(nombreCaja : string) --Genera el roll de la rul
     end
 
     PoblarRuleta(tablaItems) --Puebla la ruleta con los items obtenidos
-    --Animacion de la ruleta
+    GachaAnimator.Animar(FrameContenedor, FrameItems, cantidadFramesFalsos)
 end
 
 function GachaClient.Init()
