@@ -2,6 +2,7 @@
 local RS = game:GetService("ReplicatedStorage")
 local SS = game:GetService("ServerStorage")
 local SSS = game:GetService("ServerScriptService")
+local Players = game:GetService("Players")
 
 --DEPENDENCIAS
 local InventoryNet = require(RS.Network.InventoryNet)
@@ -38,6 +39,33 @@ local _itemEquipado: {[Player]: {[string]: Instance}} = {} --Memoria que almacen
 function InventoryHandler.Init()
     InventoryNet.EquiparItem:Server():On(function(player : Player, itemId : string, categoria : string) --Funcion que se ejecuta cuando un jugador intenta equipar un item
         InventoryHandler.ProcesarEquipamiento(player, itemId, categoria)
+    end)
+
+    local function configurarPersonaje(player : Player)
+        player.CharacterAdded:Connect(function(char)
+            task.spawn(function()
+                _itemEquipado[player] = {}
+                InventoryHandler.RestaurarEquipamiento(player, char)
+            end)
+        end)
+
+        if player.Character then
+            task.spawn(function()
+                _itemEquipado[player] = {}
+                InventoryHandler.RestaurarEquipamiento(player, player.Character)
+            end)
+        end
+    end
+
+    --Equipar los items del jugador al conectarse
+    Players.PlayerAdded:Connect(configurarPersonaje)
+    for _, player in ipairs(Players:GetPlayers()) do
+        configurarPersonaje(player)
+    end
+
+    --Limpieza
+    Players.PlayerRemoving:Connect(function(player)
+        _itemEquipado[player] = nil
     end)
 end
 
@@ -81,5 +109,49 @@ function InventoryHandler.ProcesarEquipamiento(player: Player, itemId: string, c
 
     --Guardar el clon activo en memoria
     _itemEquipado[player][categoria] = clon
+    if profile and profile.Data.Equipados then
+        profile.Data.Equipados[categoria] = itemId
+    end
+end
+
+
+local function obtenerPerfilConEspera(player: Player, timeout : number?): any
+    local limite = timeout or 5 -- Tiempo de espera predeterminado de 5 segundos
+    local inicio = os.clock()
+
+    while not DataManager.ObtenerPerfil(player) do
+        if not player:IsDescendantOf(Players) then return nil end
+
+        if os.clock() - inicio > limite then
+            warn(`[InventoryService] Tiempo de espera agotado cargando datos para {player.Name}`)
+            return nil
+        end
+        task.wait(0.1)
+    end
+    return DataManager.ObtenerPerfil(player)
+end
+
+function InventoryHandler.RestaurarEquipamiento(player: Player, character: Model)
+    local profile = obtenerPerfilConEspera(player)
+    if not profile or not profile.Data.Equipados then
+        warn(`[InventoryHandler] No se ha encontrado el perfil o los datos de equipamiento para el jugador '{player.Name}'`)
+        return 
+    end
+
+    for categoria, itemId in pairs(profile.Data.Equipados) do
+        if not itemId then continue end
+
+        local carpetaAssets = SS.Assets:FindFirstChild(categoria)
+        local modeloOriginal = carpetaAssets and carpetaAssets:FindFirstChild(itemId)
+
+        local handler = EQUIP_HANDLERS[categoria]
+        if modeloOriginal and handler then
+            local clon = modeloOriginal:Clone()
+            handler(player, character, clon)
+
+            _itemEquipado[player] = _itemEquipado[player] or {}
+            _itemEquipado[player][categoria] = clon
+        end
+    end
 end
 return InventoryHandler

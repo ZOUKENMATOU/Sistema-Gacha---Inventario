@@ -5,6 +5,7 @@ local PlayerTemplate = {
     },
     Armas = {},
     Auras = {},
+    Equipados = {},
 }
 
 export type PlayerData = typeof(PlayerTemplate)
