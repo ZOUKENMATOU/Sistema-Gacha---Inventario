@@ -39,15 +39,61 @@ function InventoryUI.Init()
     GUI = jugador:WaitForChild("PlayerGui")
 
     local inventoryVisuals = GUI:WaitForChild("InventoryVisuals")
+    local OpenInventory = inventoryVisuals:WaitForChild("OpenInventory") :: ImageButton
     local framePrincipal = inventoryVisuals:WaitForChild("FramePrincipal")
+    local CloseInventory = framePrincipal:WaitForChild("CloseInventory") :: TextButton
     FrameContenedor = framePrincipal:WaitForChild("FrameContenedor")
 
     local visualizarItem = framePrincipal:WaitForChild("VisualizarItem")
+    local equiparButton = visualizarItem:WaitForChild("EquiparButton") :: TextButton
     NombreItem = visualizarItem:WaitForChild("NombreItem")
     RarezaItem = visualizarItem:WaitForChild("RarezaItem")
 
+    --ABRIR EL INVENTARIO
+    OpenInventory.MouseButton1Click:Connect(function()
+        local Pop = Sonidos:WaitForChild("Pop")
+        local clonPop = Pop:Clone()
+        clonPop.Parent = SoundService
+
+        local Escape = Sonidos:WaitForChild("Escape")
+        local clonEscape = Escape:Clone()
+        clonEscape.Parent = SoundService
+
+        if framePrincipal.Visible == false then
+            clonPop:Play()
+            framePrincipal.Visible = true
+            Debris:AddItem(clonPop, 1)
+        else
+            clonEscape:Play()
+            framePrincipal.Visible = false
+            Debris:AddItem(clonEscape, 1)
+        end
+        
+    end)
+
+    --CERRAR EL INVENTARIO (ALTERNATIVA)
+    CloseInventory.MouseButton1Click:Connect(function()
+        local Escape = Sonidos:WaitForChild("Escape")
+        local clonEscape = Escape:Clone()
+        clonEscape.Parent = SoundService
+
+        framePrincipal.Visible = false
+        clonEscape:Play()
+        Debris:AddItem(clonEscape, 1)
+    end)
+
+    --EQUIPAR ITEM FISICAMENTE
+    equiparButton.MouseButton1Click:Connect(function()
+        local Equip = Sonidos:WaitForChild("Equip")
+        local clonEquip = Equip:Clone()
+        clonEquip.Parent = SoundService
+
+        InventoryUI:PedirEquipar()
+        clonEquip:Play()
+        Debris:AddItem(clonEquip, 1)
+    end)
+
     --CAMBIO DE PESTAÑA EN GUI
-        --Generico
     local pestaniasFolder = framePrincipal:FindFirstChild("Pestanias") --Busca la carpeta de pestanias en la GUI
     if pestaniasFolder then
         for _, boton in pestaniasFolder:GetChildren() do --Recorre todos los hijos dentro de la carpeta
@@ -69,6 +115,15 @@ function InventoryUI.Init()
         _cacheInventario = datosDelServidor
         InventoryUI:RenderizarLista()
     end)
+end
+
+function InventoryUI:PedirEquipar()
+    if not _itemSeleccionado then
+        warn("[InventoryUI] Debes seleccionar un ítem primero.")
+        return
+    end
+
+    InventoryNet.EquiparItem:Client():Fire(_itemSeleccionado, _pestaniaActual)
 end
 
 function InventoryUI:CambiarPestania(nuevaPestania : string)

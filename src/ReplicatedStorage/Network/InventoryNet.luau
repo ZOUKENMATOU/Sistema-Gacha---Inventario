@@ -12,7 +12,12 @@ local function validarInventario(datosDesconocidos: unknown)
     }
 end
 
+local function validarStrings(itemId : unknown, categoria : unknown)
+    return Guard.String(itemId), Guard.String(categoria)
+end
+
 local InventoryNet = {
     SyncInventario = Red.Event("SyncInventario", validarInventario), -- Evento para sincronizar el inventario
+    EquiparItem= Red.Event("EquiparItem", validarStrings) -- Evento para equipar un item
 }
 return InventoryNet
