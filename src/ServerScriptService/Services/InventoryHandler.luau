@@ -72,21 +72,42 @@ end
 function InventoryHandler.ProcesarEquipamiento(player: Player, itemId: string, categoria: string)
     --Obtener personaje
     local char = player.Character
-    local rootPart = char and char:FindFirstChild("HumanoidRootPart")
-    if not char or not rootPart then return end
+    if not char then return end
 
     --Validacion del item
     local profile = DataManager.ObtenerPerfil(player)
-    if not profile or not table.find(profile.Data[categoria], itemId) then
-        warn(`[InventoryHandler] Intento ilegal: {player.Name} no posee '{itemId}'`)
+    if not profile then return end
+
+
+    -- DESEQUIPAR ITEM --
+    if not itemId or itemId == "" then
+        _itemEquipado[player] = _itemEquipado[player] or {}
+        local itemPrevio = _itemEquipado[player][categoria]
+        if itemPrevio and itemPrevio.Parent then
+            itemPrevio:Destroy()
+        end
+
+        _itemEquipado[player][categoria] = nil
+
+        if profile.Data.Equipados then
+            profile.Data.Equipados[categoria] = nil
+        end
+        return 
+    end
+    
+    -- EQUIPAR ITEM --
+    if not table.find(profile.Data[categoria], itemId) then
+        warn(`[InventoryService] Intento ilegal: {player.Name} no posee '{itemId}'`)
         return
     end
 
-    --Localizacion de item
     local carpetaAssets = SS.Assets:FindFirstChild(categoria)
     local modeloOriginal = carpetaAssets and carpetaAssets:FindFirstChild(itemId)
-    if not modeloOriginal then
-        warn(`[InventoryHandler] Asset '{itemId}' no encontrado en ServerStorage`)
+    if not modeloOriginal then return end
+    
+    local handler = EQUIP_HANDLERS[categoria]
+    if not handler then
+        warn(`[InventoryHandler] No se ha definido un handler para la categoria  '{categoria}'`)
         return
     end
 
@@ -98,17 +119,10 @@ function InventoryHandler.ProcesarEquipamiento(player: Player, itemId: string, c
     end
 
     --Entrega fisica
-    local handler = EQUIP_HANDLERS[categoria]
-    if not handler then
-        warn(`[InventoryHandler] No se ha definido un handler para la categoria  '{categoria}'`)
-        return
-    end
-
     local clon = modeloOriginal:Clone()
     handler(player, char, clon)
-
-    --Guardar el clon activo en memoria
-    _itemEquipado[player][categoria] = clon
+    _itemEquipado[player][categoria] = clon --Guardar el clon activo en memoria
+    
     if profile and profile.Data.Equipados then
         profile.Data.Equipados[categoria] = itemId
     end

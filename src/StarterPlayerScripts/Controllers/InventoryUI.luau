@@ -118,11 +118,6 @@ function InventoryUI.Init()
 end
 
 function InventoryUI:PedirEquipar()
-    if not _itemSeleccionado then
-        warn("[InventoryUI] Debes seleccionar un ítem primero.")
-        return
-    end
-
     InventoryNet.EquiparItem:Client():Fire(_itemSeleccionado, _pestaniaActual)
 end
 
@@ -141,22 +136,58 @@ function InventoryUI:RenderizarLista()
         end
     end
 
-    local listaItems = _cacheInventario[_pestaniaActual] --Obtiene la lista de items de la pestania actual
-    if not listaItems then return end --Si no hay items en la lista, no hace nada y termina la función
+    local listaOriginal = _cacheInventario[_pestaniaActual] --Obtiene la lista de items de la pestania actual
+    if not listaOriginal then return end --Si no hay items en la lista, no hace nada y termina la función
+
+    --ORDENAR LA LISTA DE ITEMS EN BASE A SU RARESA --
+    local listaOrdenada = table.clone(listaOriginal)
+
+    table.sort(listaOrdenada, function(itemAId : string, itemBId : string)
+        local dataA = ItemsIndex[itemAId]
+        local dataB = ItemsIndex[itemBId]
+
+        if not dataA or not dataB then return false end
+
+        local ordenA = RarezasConfig[dataA.Rareza].Orden
+        local ordenB = RarezasConfig[dataB.Rareza].Orden
+
+        --Si el numero es menor MAYOR es la rareza
+        if ordenA ~= ordenB then
+            return ordenA < ordenB
+        end
+
+        --Si tiene la misma rareza se ordena por orden alfabetico
+        return (dataA.NombreVisible or itemAId) < (dataB.NombreVisible or itemBId)
+    end)
 
     -- GENERACION DE PLANTILLAS --
-    for _, itemId in ipairs(listaItems) do --Recorre la lista de items
+
+    --Frame vacio para desequipar
+    local slotVacio = InventoryTemplate:Clone()
+    slotVacio.Name = "SlotVacio"
+    slotVacio.LayoutOrder =  0 --Se coloca al inicio del todo
+    slotVacio.Visible = true
+
+    slotVacio.TextLabel.Text = "Ninguno"
+    slotVacio.TextLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    slotVacio.ImageButton.Image = "" --Icono vacio
+
+    slotVacio.ImageButton.MouseButton1Click:Connect(function()
+        InventoryUI:SeleccionarSlotVacio()
+    end)
+    slotVacio.Parent = FrameContenedor
+
+    --Renderizado de los items
+    for i, itemId in ipairs(listaOrdenada) do --Recorre la lista de items
         local itemData = ItemsIndex[itemId] --Busca los datos del item en el índice de items
-        if not itemData then
-            warn(`[InventoryUI] El ítem '{itemId}' no existe en ItemsIndex.`)
-            continue
-        end
+        if not itemData then continue end
 
         local templateClone = InventoryTemplate:Clone() --Clona la plantilla de ítem
         --CONFIGURACIÓN DE LA PLANTILLA
         local colorRareza = RarezasConfig[itemData.Rareza].Color
 
         templateClone.Name = itemId
+        templateClone.LayoutOrder = i
         templateClone.Visible = true
 
         templateClone.TextLabel.Text = itemData.NombreVisible
@@ -188,5 +219,14 @@ function InventoryUI:SeleccionarItem(itemId : string)
     RarezaItem.TextColor3 = RarezasConfig[itemData.Rareza].Color
 
     --Modulo modelo 3D
+end
+
+function InventoryUI:SeleccionarSlotVacio()
+    _itemSeleccionado = nil
+
+    --Limpieza
+    NombreItem.Text = "Ninguno"
+    RarezaItem.Text = "Desequipar"
+    RarezaItem.TextColor3 = Color3.fromRGB(200, 200, 200)
 end
 return InventoryUI

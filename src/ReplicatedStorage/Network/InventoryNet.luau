@@ -12,8 +12,10 @@ local function validarInventario(datosDesconocidos: unknown)
     }
 end
 
-local function validarStrings(itemId : unknown, categoria : unknown)
-    return Guard.String(itemId), Guard.String(categoria)
+local ItemIdValidator = Guard.Optional(Guard.String)
+
+local function validarStrings(itemId : unknown, categoria : unknown): (string?, string)
+    return ItemIdValidator(itemId), Guard.String(categoria)
 end
 
 local InventoryNet = {
