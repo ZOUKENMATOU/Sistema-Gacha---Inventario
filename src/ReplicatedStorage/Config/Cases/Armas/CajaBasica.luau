@@ -66,11 +66,11 @@ local CajaBasica : CaseData = {
     Probabilidades = { --Tipo y probabilidad de cada rareza
         {Rareza = "Common", Peso = 45000}, --45%
         {Rareza = "Uncommon", Peso = 30000},--30%
-        -- {Rareza = "Rare", Peso = 18000}, --18%
-        -- {Rareza = "Epic", Peso = 5000}, --5%
-        -- {Rareza = "Legendary", Peso = 1500}, --1.5%
-        -- {Rareza = "Mythic", Peso = 450}, --0.45%
-        -- {Rareza = "Divine", Peso = 50}, --0.05%
+        {Rareza = "Rare", Peso = 18000}, --18%
+        {Rareza = "Epic", Peso = 5000}, --5%
+        {Rareza = "Legendary", Peso = 1500}, --1.5%
+        {Rareza = "Mythic", Peso = 450}, --0.45%
+        {Rareza = "Divine", Peso = 50}, --0.05%
     },
 
     Contenido = { --Contenido de la caja (items que pueden salir en base a su rareza)
@@ -80,6 +80,7 @@ local CajaBasica : CaseData = {
             "espada_espina",
             "espada_morada",
         },
+
         --Poco comunes
         Uncommon = {
             "espada_minecraft",
@@ -87,21 +88,34 @@ local CajaBasica : CaseData = {
             "espada_oscura",
             "espada_negra",
         },
-        -- Rare = {
 
-        -- },
-        -- Epic = {
+        --Raro
+        Rare = {
+            "espada_luna"
+        },
 
-        -- },
-        -- Legendary = {
+        --Epico
+        Epic = {
+            "espada_eclipse",
+            "baston_estelar",
+        },
 
-        -- },
-        -- Mythic = {
+        --Legendario
+        Legendary = {
+            "daga_sombra",
+            "arco_fenix",
+        },
 
-        -- },
-        -- Divine = {
+        --Mitico
+        Mythic = {
+            "martillo_titan",
+            "guadana_vacio",
+        },
 
-        -- },
+        --Divino
+        Divine = {
+            "lanza_primordial",
+        },
     }
 }
 return CajaBasica

@@ -13,11 +13,11 @@ local CajaComun : CaseData = {
     Probabilidades = {
         {Rareza = "Common", Peso = 40000}, --40%
         {Rareza = "Uncommon", Peso = 31500}, --31.5%
-        -- {Rareza = "Rare", Peso = 19000}, --19%
-        -- {Rareza = "Epic", Peso = 5500}, --5.5%
-        -- {Rareza = "Legendary", Peso = 2000}, --2%
-        -- {Rareza = "Mythic", Peso = 1500}, --1.5%
-        -- {Rareza = "Divine", Peso = 500}, --0-5%
+        {Rareza = "Rare", Peso = 19000}, --19%
+        {Rareza = "Epic", Peso = 5500}, --5.5%
+        {Rareza = "Legendary", Peso = 2000}, --2%
+        {Rareza = "Mythic", Peso = 1500}, --1.5%
+        {Rareza = "Divine", Peso = 500}, --0-5%
     },
     Contenido = {
         --Comunes
@@ -34,16 +34,34 @@ local CajaComun : CaseData = {
             "espada_oscura",
             "espada_negra",
         },
-        -- Rare = {
-        -- },
-        -- Epic = {
-        -- },
-        -- Legendary = {
-        -- },
-        -- Mytic = {
-        -- },
-        -- Divine = {
-        -- },
+        
+        --Raro
+        Rare = {
+            "espada_luna"
+        },
+
+        --Epico
+        Epic = {
+            "espada_eclipse",
+            "baston_estelar",
+        },
+
+        --Legendario
+        Legendary = {
+            "daga_sombra",
+            "arco_fenix",
+        },
+
+        --Mitico
+        Mythic = {
+            "martillo_titan",
+            "guadana_vacio",
+        },
+
+        --Divino
+        Divine = {
+            "lanza_primordial",
+        },
     }
 }
 return CajaComun

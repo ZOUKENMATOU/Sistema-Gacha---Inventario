@@ -72,13 +72,61 @@ local Armas : {[string]: InfoData} = {
     },
 
     --Raro
+    ["espada_luna"] = {
+        ID = "espada_luna",
+        NombreVisible = "Espada luna",
+        Imagen = "",
+        Rareza = "Rare"
+    },
 
     --Epico
+    ["espada_eclipse"] = {
+        ID = "espada_eclipse",
+        NombreVisible = "Espada Eclipse",
+        Imagen = "",
+        Rareza = "Epic"
+    },
+    ["baston_estelar"] = {
+        ID = "baston_estelar",
+        NombreVisible = "Bastón Estelar",
+        Imagen = "",
+        Rareza = "Epic"
+    },
 
     --Legendario
+    ["daga_sombra"] = {
+        ID = "daga_sombra",
+        NombreVisible = "Daga de Sombras",
+        Imagen = "",
+        Rareza = "Legendary"
+    },
+    ["arco_fenix"] = {
+        ID = "arco_fenix",
+        NombreVisible = "Arco Fénix",
+        Imagen = "",
+        Rareza = "Legendary"
+    },
 
     --Mitico
-
+    ["martillo_titan"] = {
+        ID = "martillo_titan",
+        NombreVisible = "Martillo del Titán",
+        Imagen = "",
+        Rareza = "Mythic"
+    },
+    ["guadaña_vacío"] = {
+        ID = "guadana_vacio",
+        NombreVisible = "Guadaña del Vacío",
+        Imagen = "",
+        Rareza = "Mythic"
+    },
+    
     --Divino
+    ["lanza_primordial"] = {
+        ID = "lanza_primordial",
+        NombreVisible = "Lanza Primordial",
+        Imagen = "",
+        Rareza = "Divine"
+    },
 }
 return Armas

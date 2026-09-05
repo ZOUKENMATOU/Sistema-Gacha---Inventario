@@ -81,7 +81,7 @@ function GachaAnimator.Animar(frameContenedor : Frame, frameMascara : Frame, can
     conexionAudio:Disconnect() --Desconectamos el RenderStepped
 
     -- REPRODUCIMOS EL SONIDO DE VICTORIA --
-    local clonVictoria = reward:Clone()
+    local clonVictoria = reward:Clone() --PASARLO A LA ANIMACION UI
     clonVictoria.Parent = SoundService
     clonVictoria:Play()
     Debris:AddItem(clonVictoria, 4)
