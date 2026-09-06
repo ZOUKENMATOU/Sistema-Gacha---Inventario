@@ -1,19 +1,24 @@
-
 --SERVICIOS
 local RS = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local SG = game:GetService("StarterGui")
 local Debris = game:GetService("Debris")
 local SoundService = game:GetService("SoundService")
+local Workspace = game:GetService("Workspace")
 
 --DEPENDENCIAS
 local InventoryNet = require(RS.Network.InventoryNet)
 local RarezasConfig = require(RS.Config.RarezasConfig)
 local ItemsIndex = require(RS.Config.Catalogo.ItemsIndex)
---Modulo render 3D
+local ItemStudioPreview = require(RS.Utils.ItemPreviewStudio)
 
---
+--ALGO XD
 local Sonidos = SoundService:WaitForChild("Sonidos")
+local Assets = RS.Assets :: Folder
+
+local PreviewSet
+local Podio
+local CameraAnchor
 
 local InventoryUI = {}
 
@@ -36,15 +41,22 @@ local NombreItem: TextLabel
 local RarezaItem: TextLabel
 
 function InventoryUI.Init()
+    PreviewSet = Workspace:WaitForChild("PreviewStage")
+    Podio = PreviewSet:WaitForChild("Podio")
+    CameraAnchor = PreviewSet:WaitForChild("Camera")
+
+    --REFERENCIAS GUI
     GUI = jugador:WaitForChild("PlayerGui")
 
     local inventoryVisuals = GUI:WaitForChild("InventoryVisuals")
     local OpenInventory = inventoryVisuals:WaitForChild("OpenInventory") :: ImageButton
+    local closePreview = inventoryVisuals:WaitForChild("ClosePreview") :: TextButton
     local framePrincipal = inventoryVisuals:WaitForChild("FramePrincipal")
     local CloseInventory = framePrincipal:WaitForChild("CloseInventory") :: TextButton
     FrameContenedor = framePrincipal:WaitForChild("FrameContenedor")
 
     local visualizarItem = framePrincipal:WaitForChild("VisualizarItem")
+    local visualizarButton = visualizarItem:WaitForChild("VisualizarButton") :: ImageButton
     local equiparButton = visualizarItem:WaitForChild("EquiparButton") :: TextButton
     NombreItem = visualizarItem:WaitForChild("NombreItem")
     RarezaItem = visualizarItem:WaitForChild("RarezaItem")
@@ -80,6 +92,24 @@ function InventoryUI.Init()
         framePrincipal.Visible = false
         clonEscape:Play()
         Debris:AddItem(clonEscape, 1)
+    end)
+
+    --PRE VISUALIZACION
+    visualizarButton.MouseButton1Click:Connect(function()
+        framePrincipal.Visible = false
+        closePreview.Visible = true
+        ItemStudioPreview.AbrirEstudio(Podio, CameraAnchor, .5)
+        
+        local asset = Assets[_pestaniaActual]:FindFirstChild(_itemSeleccionado)
+        if asset then
+            ItemStudioPreview.MostrarItem(_pestaniaActual, asset)
+        end
+    end)
+    
+    closePreview.MouseButton1Click:Connect(function()
+        closePreview.Visible = false
+        framePrincipal.Visible = true
+        ItemStudioPreview.CerrarEstudio()
     end)
 
     --EQUIPAR ITEM FISICAMENTE
@@ -217,8 +247,6 @@ function InventoryUI:SeleccionarItem(itemId : string)
     NombreItem.Text = itemData.NombreVisible
     RarezaItem.Text = itemData.Rareza
     RarezaItem.TextColor3 = RarezasConfig[itemData.Rareza].Color
-
-    --Modulo modelo 3D
 end
 
 function InventoryUI:SeleccionarSlotVacio()
