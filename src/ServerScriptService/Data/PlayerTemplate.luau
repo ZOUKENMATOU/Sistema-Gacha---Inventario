@@ -3,9 +3,9 @@ local PlayerTemplate = {
         Oro = 300,
         Gemas = 0
     },
-    Armas = {},
-    Auras = {},
-    Equipados = {},
+    Armas = {} :: {string},
+    Auras = {} :: {string},
+    Equipados = {} :: {string},
 }
 
 export type PlayerData = typeof(PlayerTemplate)

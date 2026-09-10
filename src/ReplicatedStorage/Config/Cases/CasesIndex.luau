@@ -1,11 +1,12 @@
---SERVICIOS
+-- SERVICIOS
 local RS = game:GetService("ReplicatedStorage")
 
---MODULOS
+-- DEPENDENCIAS
 local RarezaConfig = require(RS.Config.RarezasConfig)
 
---TIPOS DE DATO
+--TIPOS DE DATOS
 export type TipoData = "Armas" | "Auras" | string --Tipo de contenido de la caja, puede ser "Armas", "Auras" o cualquier otro tipo
+export type TipoMonedas = "Oro" | "Gemas" | "Robux"
 
 export type ProbabilidadData = { --Datos de probabilidad para cada ítem en la caja
     Rareza: RarezaConfig.NombresRareza,
@@ -16,6 +17,8 @@ export type CaseData = { --Datos de la caja
     ID: string,
     NombreVisible: string,
     Precio: number,
+    Moneda: TipoMonedas,
+    ProductId: number?, --Caja que se compre con robux
     Tipo: TipoData,
     Probabilidades: { ProbabilidadData },
     Contenido: { [RarezaConfig.NombresRareza]: { string } },

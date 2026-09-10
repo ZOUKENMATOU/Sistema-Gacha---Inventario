@@ -1,230 +1,241 @@
+-- SERVICIOS
 local Players = game:GetService("Players")
 local RS = game:GetService("ReplicatedStorage")
 local SSS = game:GetService("ServerScriptService")
 local RunService = game:GetService("RunService")
 
+-- DEPENDENCIAS
 local ProfileStore = require(SSS.ServerPackages.profilestore)
 local PlayerTemplate = require(SSS.Data.PlayerTemplate)
-
-local RarezasConfig = require(RS.Config.RarezasConfig) --Importacion de la configuración de rarezas
+local RarezasConfig = require(RS.Config.RarezasConfig) -- Importación de la configuración de rarezas
 local InventoryNet = require(RS.Network.InventoryNet)
 local EconomyNet = require(RS.Network.EconomyNet)
 
---Datos separados entre Studio y datos Reales
-local function STORE_KEY()
-    return RunService:IsStudio() and "Data_TestV1" or "Data_Live"
-end
-
-local PlayerStore = ProfileStore.New(STORE_KEY(), PlayerTemplate)
-
-local Profiles = {} --Perfiles activos
-
+-- TIPOS DE DATOS
 type NombreRareza = RarezasConfig.NombresRareza
 
 export type RecompensasData = {
-    Oro: number,
-    Gemas: number,
+	Oro: number,
+	Gemas: number,
 }
 
-local COMPENSACION_RAREZAS: {[NombreRareza]: RecompensasData} = {
-    Common = {
-        Oro = 10,
-        Gemas = 0,
-    },
-    Uncommon = {
-        Oro = 25,
-        Gemas = 0,
-    },
-    Rare = {
-        Oro = 50,
-        Gemas = 1,
-    },
-    Epic = {
-        Oro = 80,
-        Gemas = 3,
-    },
-    Legendary = {
-        Oro = 150,
-        Gemas = 5
-    },
-    Mythic = {
-        Oro = 200,
-        Gemas = 10
-    },
-    Divine = {
-        Oro = 400,
-        Gemas = 15
-    }
+-- CONSTANTES
+--Datos separados entre Studio y datos Reales
+local function obtenerClaveAlmacen(): string
+	return RunService:IsStudio() and "Data_TestV1" or "Data_Live"
+end
+
+local COMPENSACION_RAREZAS: { [NombreRareza]: RecompensasData } = {
+	Common = {
+		Oro = 10,
+		Gemas = 0,
+	},
+	Uncommon = {
+		Oro = 25,
+		Gemas = 0,
+	},
+	Rare = {
+		Oro = 50,
+		Gemas = 1,
+	},
+	Epic = {
+		Oro = 80,
+		Gemas = 3,
+	},
+	Legendary = {
+		Oro = 150,
+		Gemas = 5,
+	},
+	Mythic = {
+		Oro = 200,
+		Gemas = 10,
+	},
+	Divine = {
+		Oro = 400,
+		Gemas = 15,
+	},
 }
 
--- INICIO DEL SISTEMA --
+-- ESTADO LOCAL
+local PlayerStore = ProfileStore.New(obtenerClaveAlmacen(), PlayerTemplate)
+local Profiles = {} -- Perfiles de sesión activos
+
+-- MÓDULO PÚBLICO
 local DataManager = {}
 
-function DataManager.CargarPerfil(player : Player)
-    local profile = PlayerStore:StartSessionAsync("Player_".. player.UserId) -- Crea una sesión de perfil para el jugador
-    if profile == nil then
-        player:Kick("Error al cargar tus datos. Vuelve a intentarlo")
-    end
+-- FUNCIONES AUXILIARES PRIVADAS
 
-    --GDPR (General Data Protection Regulation) Si un jugador pide borrar sus datos Roblox sepa donde estan almacenados
-    profile:AddUserId(player.UserId)
-
-    profile:Reconcile() -- Si se agregan nuevos datos a la plantilla, se actualizan automáticamente
-
-    -- Desconexion forzada del jugador
-    profile.OnSessionEnd:Connect(function()
-        Profiles[player] = nil --Si los datos del jugador son nulos, se desconecta del servidor
-        player:Kick("Tus datos se cargaron en otro servidor.")
-    end)
-
-    -- Verificacion de estado del perfil (activo o inactivo)
-    if player:IsDescendantOf(Players) then
-        if profile:IsActive() then --Si el jugador sigue en el servidor, se guarda el perfil
-            print(`[DataManager] Cargando datos de {player.Name}`)
-            Profiles[player] = profile
-            
-            --Obtener los datos del inventariol y economia del jugador
-            local datosInventario = {
-                Armas = profile.Data.Armas,
-                Auras = profile.Data.Auras
-            }
-            local datosEconomia = {
-                Oro = profile.Data.Economia.Oro,
-                Gemas = profile.Data.Economia.Gemas,
-            }
-            InventoryNet.SyncInventario:Server():Fire(player, datosInventario) --Envía los datos del inventario al cliente
-            EconomyNet.SyncEconomia:Server():Fire(player, datosEconomia) --Envía los datos de la economía al cliente
-
-        else --Si el jugador no está en el servidor, se guarda el perfil pero no se envían los datos
-            profile:EndSession()
-        end
-    end
+-- Sincroniza el estado de la economía del jugador hacia el cliente correspondiente
+local function sincronizarEconomia(player: Player, profile: any)
+	local datosEconomia = {
+		Oro = profile.Data.Economia.Oro,
+		Gemas = profile.Data.Economia.Gemas,
+	}
+	EconomyNet.SyncEconomia:Server():Fire(player, datosEconomia)
 end
 
-function DataManager.GuardarPerfil(player : Player)
-    --Cuando el jugador se sale
-    local profile = Profiles[player] --Obtiene el perfil del jugador
-    if profile ~= nil then --Si el perfil existe
-        profile:EndSession()
-        Profiles[player] = nil --Elimina el perfil del jugador
-        print(`[DataManager] Se han guardado los datos de {player.Name}.`)
-    end
+-- Sincroniza el inventario completo del jugador hacia el cliente correspondiente
+local function sincronizarInventario(player: Player, profile: any)
+	local datosInventario = {
+		Armas = profile.Data.Armas,
+		Auras = profile.Data.Auras,
+	}
+	InventoryNet.SyncInventario:Server():Fire(player, datosInventario)
 end
 
-function DataManager.ObtenerPerfil(player : Player)
-    --Sirve para obtener el perfil del jugador actual (para otros scripts)
-    print(`[DataManager] Obteniendo datos de {player.Name}`)
-    return Profiles[player] --Devuelve el perfil del jugador
+-- Otorga compensación económica por un ítem duplicado según su rareza
+local function compensarDuplicado(player: Player, tipo: string, rareza: NombreRareza)
+	local recompensas = COMPENSACION_RAREZAS[rareza]
+	local oroExtra = (recompensas and recompensas.Oro) or 0
+	local gemasExtra = (recompensas and recompensas.Gemas) or 0
+
+	DataManager.AgregarOro(player, oroExtra)
+	DataManager.AgregarGemas(player, gemasExtra)
+	print(`[DataManager] Duplicado ({tipo}): +{oroExtra} Oro, +{gemasExtra} Gemas`)
 end
 
---Funciones para cargar y guardar perfiles de jugador
+-- FUNCIONES PÚBLICAS: SESIÓN Y CICLO DE VIDA
+
+-- Carga la sesión del perfil del jugador conectado
+function DataManager.CargarPerfil(player: Player)
+	local profile = PlayerStore:StartSessionAsync("Player_" .. player.UserId)
+	if profile == nil then
+		player:Kick("Error al cargar tus datos. Vuelve a intentarlo")
+		return
+	end
+
+	-- GDPR: Si un jugador solicita borrado de datos, Roblox conoce dónde están almacenados
+	profile:AddUserId(player.UserId)
+	profile:Reconcile() -- Si se agregan nuevos datos a la plantilla, se actualizan automáticamente
+
+	-- Manejo de desconexión forzada de sesión (ej. carga simultánea en otro servidor)
+	profile.OnSessionEnd:Connect(function()
+		Profiles[player] = nil
+		player:Kick("Tus datos se cargaron en otro servidor.")
+	end)
+
+	-- Verificación de estado del perfil (activo o inactivo)
+	if player:IsDescendantOf(Players) then
+		if profile:IsActive() then
+			print(`[DataManager] Cargando datos de {player.Name}`)
+			Profiles[player] = profile
+
+			-- Enviar datos iniciales de inventario y economía al cliente
+			sincronizarInventario(player, profile)
+			sincronizarEconomia(player, profile)
+		else
+			profile:EndSession()
+		end
+	else
+		profile:EndSession()
+	end
+end
+
+-- Guarda y libera la sesión del perfil al desconectarse el jugador
+function DataManager.GuardarPerfil(player: Player)
+	local profile = Profiles[player]
+	if profile ~= nil then
+		profile:EndSession()
+		Profiles[player] = nil
+		print(`[DataManager] Se han guardado los datos de {player.Name}.`)
+	end
+end
+
+-- Devuelve el perfil activo del jugador actual
+function DataManager.ObtenerPerfil(player: Player)
+	return Profiles[player]
+end
+
+-- Inicializa las conexiones del ciclo de vida de jugadores
 function DataManager.Init()
-    Players.PlayerAdded:Connect(DataManager.CargarPerfil) --Cuando un jugador se une al juego
-    Players.PlayerRemoving:Connect(DataManager.GuardarPerfil) --Cuando un jugador se sale del juego
+	Players.PlayerAdded:Connect(DataManager.CargarPerfil)
+	Players.PlayerRemoving:Connect(DataManager.GuardarPerfil)
 
-    -- Carga los perfiles de los jugadores que ya están en el juego
-    for _, player in Players:GetPlayers() do --Recorre todos los jugadores en el juego
-        task.spawn(function() --Se ejecuta en un hilo separado para evitar bloquear el juego
-            DataManager.CargarPerfil(player) --Carga el perfil del jugador
-        end)
-    end
+	-- Carga los perfiles de los jugadores presentes antes de la inicialización
+	for _, player in Players:GetPlayers() do
+		task.spawn(function()
+			DataManager.CargarPerfil(player)
+		end)
+	end
 end
 
--- COMPRAS --
-function DataManager.GastarOro(player : Player, cantidad : number)
-    local profile = Profiles[player] --Busca al jugador en la tabla de perfiles
-    if not profile then return false end --Si no hay un perfil para el jugador, no se puede gastar
+-- FUNCIONES PÚBLICAS: ECONOMÍA
 
-    if profile.Data.Economia.Oro >= cantidad then --Si la cantidad de oro es mayor o igual a la cantidad a gastar, se realiza la compra
-        profile.Data.Economia.Oro -= cantidad --Se resta la cantidad de oro del jugador
-        print(`[DataManager] Se ha restado ${cantidad} oro a {player.Name} `)
-        local datosEconomia = { --Se preparan los datos de la economía para enviar al cliente
-            Oro = profile.Data.Economia.Oro,
-            Gemas = profile.Data.Economia.Gemas
-        }
-        EconomyNet.SyncEconomia:Server():Fire(player, datosEconomia) --Llama al evento de economía para enviar los datos al cliente
-        return true --Compra exitosa
-     else
-        warn(`[DataManager] Compra rechazada. Fondos insuficientes`)
-        return false --Sin fondos suficientes
-    end
+-- Deduce una cantidad de Oro del perfil del jugador si posee fondos suficientes
+function DataManager.GastarOro(player: Player, cantidad: number): boolean
+	local profile = Profiles[player]
+	if not profile then return false end
+
+	if profile.Data.Economia.Oro >= cantidad then
+		profile.Data.Economia.Oro -= cantidad
+		print(`[DataManager] Se ha restado {cantidad} oro a {player.Name}`)
+		sincronizarEconomia(player, profile)
+		return true
+	else
+		warn(`[DataManager] Compra rechazada. Fondos insuficientes de Oro para {player.Name}`)
+		return false
+	end
 end
 
-function DataManager.GastarGemas(player : Player, cantidad : number)
-    local profile = Profiles[player] --Busca al jugador en la tabla de perfiles
-    if not profile then return false end --Si no hay un perfil para el jugador, no se puede gastar
+-- Deduce una cantidad de Gemas del perfil del jugador si posee fondos suficientes
+function DataManager.GastarGemas(player: Player, cantidad: number): boolean
+	local profile = Profiles[player]
+	if not profile then return false end
 
-    if profile.Data.Economia.Gemas >= cantidad then
-        profile.Data.Economia.Gemas -= cantidad
-        print(`[DataManager] Se ha restado ${cantidad} oro a {player.Name} `)
-        local datosEconomia = {
-            Oro = profile.Data.Economia.Oro,
-            Gemas = profile.Data.Economia.Gemas
-        }
-        EconomyNet.SyncEconomia:Server():Fire(player, datosEconomia)
-        return true
-    else
-        warn(`[DataManager] Compra rechazada. Fondos insuficientes`)
-        return false
-    end
+	if profile.Data.Economia.Gemas >= cantidad then
+		profile.Data.Economia.Gemas -= cantidad
+		print(`[DataManager] Se ha restado {cantidad} gemas a {player.Name}`)
+		sincronizarEconomia(player, profile)
+		return true
+	else
+		warn(`[DataManager] Compra rechazada. Fondos insuficientes de Gemas para {player.Name}`)
+		return false
+	end
 end
 
--- AÑADIR FONDOS --
-function DataManager.AgregarOro(player : Player, cantidad : number)
-    local profile = Profiles[player]
-    if not profile then return end
+-- Añade una cantidad de Oro al perfil del jugador y sincroniza con el cliente
+function DataManager.AgregarOro(player: Player, cantidad: number)
+	local profile = Profiles[player]
+	if not profile then return end
 
-    profile.Data.Economia.Oro += cantidad
-    local datosEconomia = {
-        Oro = profile.Data.Economia.Oro,
-        Gemas = profile.Data.Economia.Gemas
-    }
-    EconomyNet.SyncEconomia:Server():Fire(player, datosEconomia)
+	profile.Data.Economia.Oro += cantidad
+	sincronizarEconomia(player, profile)
 end
 
-function DataManager.AgregarGemas(player : Player, cantidad : number)
-    local profile = Profiles[player]
-    if not profile then return end
+-- Añade una cantidad de Gemas al perfil del jugador y sincroniza con el cliente
+function DataManager.AgregarGemas(player: Player, cantidad: number)
+	local profile = Profiles[player]
+	if not profile then return end
 
-    profile.Data.Economia.Gemas += cantidad
-    local datosEconomia = {
-        Oro = profile.Data.Economia.Oro,
-        Gemas = profile.Data.Economia.Gemas
-    }
-    EconomyNet.SyncEconomia:Server():Fire(player, datosEconomia)
+	profile.Data.Economia.Gemas += cantidad
+	sincronizarEconomia(player, profile)
 end
 
--- AÑADIR ITEMS --
-function DataManager.AgregarItemPorTipo(player : Player, tipo : string, itemId : string, rarezaGanadora : NombreRareza) : boolean
-    local profile = Profiles[player]
-    if not profile then return false end
+-- FUNCIONES PÚBLICAS: INVENTARIO
 
-    local inventarioCategoria = profile.Data[tipo]
-    if not inventarioCategoria then
-        warn(`[DataManager] La categoría {tipo} no existe en el perfil de {player.Name}`)
-        return false
-    end
+-- Agrega un ítem al inventario del jugador o compensa con divisas en caso de estar repetido
+function DataManager.AgregarItemPorTipo(player: Player, tipo: string, itemId: string, rarezaGanadora: NombreRareza) : boolean
+	local profile = Profiles[player]
+	if not profile then return false end
 
-    --MANEJO DE ITEMS DUPLICADOS
-    if table.find(inventarioCategoria, itemId) then
-        local recompensas = COMPENSACION_RAREZAS[rarezaGanadora]
-        local oroExtra = recompensas.Oro or 0
-        local gemasExtra = recompensas.Gemas or 0
+	local inventarioCategoria = profile.Data[tipo]
+	if not inventarioCategoria then
+		warn(`[DataManager] La categoría '{tipo}' no existe en el perfil de {player.Name}`)
+		return false
+	end
 
-        DataManager.AgregarOro(player, oroExtra)
-        DataManager.AgregarGemas(player, gemasExtra)
-        print(`[DataManager] Duplicado ({tipo}): +{oroExtra} Oro, +{gemasExtra} Gemas`)
-        return false
-    end
+	-- Manejo de duplicados: otorga compensación en lugar de agregar el ítem repetido
+	if table.find(inventarioCategoria, itemId) then
+		compensarDuplicado(player, tipo, rarezaGanadora)
+		return false
+	end
 
-    ---AGREGAR ITEM AL INVENTARIO
-    table.insert(inventarioCategoria, itemId)
-    print(`[DataManager] Se agregó {itemId} a la categoría {tipo} de {player.Name}`)
+	-- Agregar ítem nuevo al inventario y sincronizar
+	table.insert(inventarioCategoria, itemId)
+	print(`[DataManager] Se agregó {itemId} a la categoría '{tipo}' de {player.Name}`)
 
-    InventoryNet.SyncInventario:Server():Fire(player, {
-        Armas = profile.Data.Armas,
-        Auras = profile.Data.Auras,
-    })
-    return true
+	sincronizarInventario(player, profile)
+	return true
 end
+
 return DataManager

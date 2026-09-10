@@ -1,8 +1,11 @@
+-- SERVICIOS
 local RS = game:GetService("ReplicatedStorage")
 
+-- DEPENDENCIAS
 local RarezasConfig = require(RS.Config.RarezasConfig) --Importacion de la configuración de rarezas
 type NombreRareza = RarezasConfig.NombresRareza
 
+-- TIPOS DE DATOS
 export type InfoData = {
     ID: string,
     NombreVisible: string,
@@ -10,6 +13,7 @@ export type InfoData = {
     Rareza: NombreRareza
 }
 
+-- CATALOGO DE AURAS
 local Auras : {[string]: InfoData} = {
 
     --Comun

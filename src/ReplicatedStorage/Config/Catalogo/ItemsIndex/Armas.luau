@@ -1,23 +1,19 @@
+-- SERVICIOS
 local RS = game:GetService("ReplicatedStorage")
 
+--DEPENDENCIAS
 local RarezasConfig = require(RS.Config.RarezasConfig) --Importacion de la configuración de rarezas
 type NombreRareza = RarezasConfig.NombresRareza
 
+-- TIPOS DE DATOS
 export type InfoData = {
     ID: string,
     NombreVisible: string,
     Imagen: string,
     Rareza: NombreRareza
 }
---[[
-[""] = {
-    ID = "",
-    NombreVisible = "",
-    Image = "rbxassetid://",
-    Rareza = ""
-}
-]]
 
+-- CATALOGO DE ARMAS
 local Armas : {[string]: InfoData} = {
         --Comunes
     ["espada_hierro"] = {
@@ -114,7 +110,7 @@ local Armas : {[string]: InfoData} = {
         Imagen = "",
         Rareza = "Mythic"
     },
-    ["guadaña_vacío"] = {
+    ["guadana_vacio"] = {
         ID = "guadana_vacio",
         NombreVisible = "Guadaña del Vacío",
         Imagen = "",

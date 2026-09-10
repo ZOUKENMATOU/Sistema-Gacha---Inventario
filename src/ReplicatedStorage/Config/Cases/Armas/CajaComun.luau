@@ -1,8 +1,11 @@
+-- DEPENDENCIAS
 local CajaBasica = require(script.Parent.CajaBasica)
 type CajaBasica = CajaBasica.CaseData
 
+-- TIPOS DE DATOS
 export type CaseData = CajaBasica
 
+-- CONFIGURACION DE LA CAJA
 local CajaComun : CaseData = {
     ID = "caja_comun",
     NombreVisible = "Caja Común",

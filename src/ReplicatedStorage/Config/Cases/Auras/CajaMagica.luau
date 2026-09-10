@@ -1,10 +1,14 @@
+-- servicios
 local RS = game:GetService("ReplicatedStorage")
 
+-- DEPENDENCIAS
 local CajaBasica  = require(RS.Config.Cases.Armas.CajaBasica)
 type CajaBasica = CajaBasica.CaseData
 
+-- TIPOS DE DATOS
 export type CaseData = CajaBasica
 
+-- CONFIGURACION DE LA CAJA
 local CajaMagica : CaseData = {
     ID = "caja_magica",
     NombreVisible = "Caja Mágica",

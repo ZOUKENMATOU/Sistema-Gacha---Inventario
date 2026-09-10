@@ -1,6 +1,10 @@
+-- SERVICIOS
 local RS = game:GetService("ReplicatedStorage")
 
+-- DEPENDENCIAS
 local RarezasConfig = require(RS.Config.RarezasConfig) --Importacion de la configuración de rarezas
+
+-- TIPOS DE DATOS
 type NombreRareza = RarezasConfig.NombresRareza
 
 export type TipoData = "Armas" | "Auras"
@@ -22,40 +26,7 @@ export type CaseData = {
     Contenido: {[NombreRareza]: {string}} --Diccionario de Arrays
 }
 
---[[
-ID = "",
-NombreVisual = "",
-Precio = ,
-Moneda = "",
-Tipo = "",
-
-Probabilidades = {
-    {Rareza = "Common", Peso = },
-    {Rareza = "Uncommon", Peso = },
-    {Rareza = "Rare", Peso = },
-    {Rareza = "Epic", Peso = },
-    {Rareza = "Legendary", Peso = },
-    {Rareza = "Mythic", Peso = }, 
-    {Rareza = "Divine", Peso = },
-},
-Contenido = {
-    Common = {
-    },
-    Uncommon = {
-    },
-    Rare = {
-    },
-    Epic = {
-    },
-    Legendary = {
-    },
-    Mytic = {
-    },
-    Divine = {
-    },
-}
-]]
-
+-- CPONFIGURACION DE LA CAJA
 local CajaBasica : CaseData = {
     ID = "caja_basica",
     NombreVisible = "Caja Básica",

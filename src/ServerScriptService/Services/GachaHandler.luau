@@ -1,62 +1,87 @@
-local GachaHandler = {}
-
---SERVICIOS
+-- SERVICIOS
 local RS = game:GetService("ReplicatedStorage")
 local SSS = game:GetService("ServerScriptService")
 
---DEPENDENCIAS
+-- DEPENDENCIAS
 local CasesIndex = require(RS.Config.Cases.CasesIndex)
 local SPP = require(RS.Utils.SelectorPorPeso)
 local RNG = require(RS.Utils.RNG)
 local GachaNet = require(RS.Network.GachaNet)
-
 local DataManager = require(SSS.Data.DataManager)
 
-
-local CobradoresMoneda : {[string]: (Player, number) -> boolean} = {
-    Oro = DataManager.GastarOro,
-    Gemas = DataManager.GastarGemas,
+-- CONSTANTES
+local COBRADORES_MONEDA: { [string]: (Player, number) -> boolean } = {
+	Oro = DataManager.GastarOro,
+	Gemas = DataManager.GastarGemas,
 }
-function GachaHandler.Init()
-    GachaNet.AbrirCaja:SetCallback(function(player: Player, nombreCaja: string)
-        local CajaRequerida = CasesIndex[nombreCaja]
 
-        if not CajaRequerida then
-            warn("[GachaHandler] Caja inválida. No existe la caja con el ID: " .. nombreCaja)
-            return
-        end
+-- MÓDULO PÚBLICO
+local GachaHandler = {}
 
-        if CajaRequerida.Moneda == "Robux" then
-            error("[GachaService] Las cajas de Robux deben comprarse mediante la pasarela de pago.")
-        end
+-- FUNCIONES AUXILIARES PRIVADAS
 
-        local cobrar = CobradoresMoneda[CajaRequerida.Moneda] --Función para cobrar la moneda correspondiente al jugador
-        if not cobrar or not cobrar(player, CajaRequerida.Precio) then --Cobrar la moneda correspondiente al jugador si no se puede cobrar, se devuelve un error
-            error(`[GachaService] Fondos insuficientes de {CajaRequerida.Moneda}.`)
-        end
-        
-        --Seleccionar una rareza ganadora basada en las probabilidades definidas en la caja
-        local pesos = CajaRequerida.Probabilidades --Tabla de probabilidades de los items en la caja
-        local pesoTotal = SPP.ObtenerTotal(pesos) --Suma de todos los pesos de los items en la caja
-        local rng = RNG.GenerarRNG(pesoTotal) --Genera un número aleatorio entre 1 y el peso total
+-- Valida fondos y realiza el débito correspondiente de la moneda de la caja
+local function cobrarPrecioCaja(player: Player, caja: any): boolean
+	if caja.Moneda == "Robux" then
+		error("[GachaService] Las cajas de Robux deben comprarse mediante la pasarela de pago.")
+	end
 
-        local rarezaGanadora = SPP.SeleccionarRareza(pesos, rng) --Selecciona la rareza del item ganador basado en el RNG generado
-        if not rarezaGanadora then
-            warn("[GachaHandler] No se pudo seleccionar una rareza ganadora para la caja: " .. nombreCaja)
-            return
-        end
+	local cobrar = COBRADORES_MONEDA[caja.Moneda]
+	if not cobrar or not cobrar(player, caja.Precio) then
+		error(`[GachaService] Fondos insuficientes de {caja.Moneda}.`)
+	end
 
-        --Seleccionar un item ganador basado en la rareza seleccionada
-        local tablaRareza = CasesIndex[nombreCaja].Contenido[rarezaGanadora] --Indice de items de la rareza seleccionada
-        if not tablaRareza or #tablaRareza == 0 then
-            warn("[GachaHandler] No hay items disponibles para la rareza seleccionada: " .. rarezaGanadora)
-            return
-        end
-        local numRandom = math.random(#tablaRareza) --Genera un número aleatorio entre 1 y la cantidad de items de la rareza seleccionada
-        local itemGanadorId = tablaRareza[numRandom] --Selecciona el item ganador basado en el número aleatorio generado
-        
-        DataManager.AgregarItemPorTipo(player, CajaRequerida.Tipo, itemGanadorId, rarezaGanadora)
-        return itemGanadorId
-    end)
+	return true
 end
+
+-- Determina la rareza y el ítem resultante según las probabilidades y el contenido de la caja
+local function seleccionarItemAleatorio(caja: any): (string?, string?)
+	local pesos = caja.Probabilidades
+	local pesoTotal = SPP.ObtenerTotal(pesos)
+	local rng = RNG.GenerarRNG(pesoTotal)
+
+	local rarezaGanadora = SPP.SeleccionarRareza(pesos, rng)
+	if not rarezaGanadora then
+		return nil, nil
+	end
+
+	local tablaItemsRareza = caja.Contenido[rarezaGanadora]
+	if not tablaItemsRareza or #tablaItemsRareza == 0 then
+		return nil, rarezaGanadora
+	end
+
+	local indiceAleatorio = math.random(#tablaItemsRareza)
+	local itemGanadorId = tablaItemsRareza[indiceAleatorio]
+
+	return itemGanadorId, rarezaGanadora
+end
+
+-- FUNCIONES PÚBLICAS
+
+-- Inicializa los listeners y callbacks del sistema de Gacha
+function GachaHandler.Init()
+	GachaNet.AbrirCaja:SetCallback(function(player: Player, nombreCaja: string)
+		local cajaRequerida = CasesIndex[nombreCaja]
+		if not cajaRequerida then
+			warn(`[GachaHandler] Caja inválida. No existe la caja con el ID: {nombreCaja}`)
+			return
+		end
+
+		-- Cobro del costo de apertura
+		cobrarPrecioCaja(player, cajaRequerida)
+
+		-- Selección de recompensa
+		local itemGanadorId, rarezaGanadora = seleccionarItemAleatorio(cajaRequerida)
+		if not itemGanadorId or not rarezaGanadora then
+			warn(`[GachaHandler] No se pudo obtener un ítem válido para la caja: {nombreCaja}`)
+			return
+		end
+
+		-- Entrega del ítem o compensación
+		DataManager.AgregarItemPorTipo(player, cajaRequerida.Tipo, itemGanadorId, rarezaGanadora)
+
+		return itemGanadorId
+	end)
+end
+
 return GachaHandler

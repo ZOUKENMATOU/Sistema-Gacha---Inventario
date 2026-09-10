@@ -4,7 +4,7 @@ local TS = game:GetService("TweenService")
 
 local UIAnim = {}
 
-function UIAnim.IniarGiroDestello(elementoRotar : ImageLabel, duracionVuelta: number?)
+function UIAnim.IniarGiroDestello(elementoRotar : ImageLabel, duracionVuelta: number?) --ANIMA EL BRILLO AL FINAL DE GACHA
     local duracion = duracionVuelta or 10
 
     local info = TweenInfo.new(
